@@ -19,6 +19,7 @@ type NodeService struct {
 	Key           string
 	Configuration *etc.Configuration
 	discovery     *discovery.Discovery
+	stopCh        chan struct{}
 }
 
 // NewNodeService exported
@@ -57,6 +58,7 @@ func NewNodeService() (*NodeService, error) {
 		Key:           key,
 		Configuration: configuration,
 		discovery:     d,
+		stopCh:        make(chan struct{}),
 	}, nil
 }
 
@@ -74,8 +76,8 @@ func (service *NodeService) Startup() error {
 		return err
 	}
 
-	service.discovery.Register(service.Key, buf, func(err error) {
-		log.Printf("[#service#] discovery regist error:%s\n", err.Error())
+	service.discovery.Register(service.Key, buf, service.stopCh, func(key string, err error) {
+		log.Printf("[#service#] discovery regist %s error:%s\n", key, err.Error())
 	})
 	return nil
 }
@@ -83,7 +85,7 @@ func (service *NodeService) Startup() error {
 func (service *NodeService) Stop() error {
 
 	log.Printf("[#service#] service closed.\n")
-	//service.discovery.Close()
+	close(service.stopCh)
 	return nil
 }
 
