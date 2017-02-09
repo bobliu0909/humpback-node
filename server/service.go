@@ -3,13 +3,12 @@ package server
 import "github.com/humpback/discovery"
 import "github.com/humpback/gounits/json"
 import "github.com/humpback/gounits/rand"
+import "github.com/humpback/gounits/network"
 import "github.com/humpback/humpback-center/cluster"
 import "github.com/bobliu0909/humpback-node/etc"
 
 import (
 	"flag"
-	"fmt"
-	"gutils/network"
 	"log"
 	"net"
 	"time"
@@ -76,6 +75,7 @@ func (service *NodeService) Startup() error {
 		return err
 	}
 
+	log.Printf("[#service#] regist key:%s, addr %s\n", service.Key, addr)
 	service.discovery.Register(service.Key, buf, service.stopCh, func(key string, err error) {
 		log.Printf("[#service#] discovery regist %s error:%s\n", key, err.Error())
 	})
@@ -96,35 +96,12 @@ func getServiceAddr(host string) (string, error) {
 		return "", err
 	}
 
-	addrs := []string{}
 	if len(ip) == 0 {
-		nets, err := network.GetLocalNetAddrs()
-		if err != nil {
-			return "", err
-		}
-		for _, net := range nets {
-			addrs = append(addrs, net.IP+":"+port)
-		}
-	} else {
-		addrs = append(addrs, ip+":"+port)
+		ip = network.GetDefaultIP()
 	}
 
-	selectip, err := autoSelectIp(addrs)
-	if err != nil {
+	if _, err := net.ResolveIPAddr("ip", ip); err != nil {
 		return "", err
 	}
-	return selectip, nil
-}
-
-func autoSelectIp(addrs []string) (string, error) {
-
-	fmt.Println(addrs)
-	for _, addr := range addrs {
-		if _, err := net.ResolveIPAddr("ip", addr); err != nil {
-			log.Printf("[#service#] auto select ip error:%s\n", err.Error())
-			continue
-		}
-		return addr, nil
-	}
-	return "", fmt.Errorf("local select ipaddr invalid.")
+	return ip + ":" + port, nil
 }
