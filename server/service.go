@@ -1,17 +1,16 @@
 package server
 
 import "github.com/humpback/discovery"
-import "github.com/humpback/gounits/json"
 import "github.com/humpback/gounits/rand"
 import "github.com/humpback/gounits/network"
-import "github.com/humpback/humpback-center/cluster"
+import "github.com/humpback/gounits/json"
+import "github.com/humpback/humpback-center/cluster/types"
 import "github.com/bobliu0909/humpback-node/etc"
 
 import (
 	"flag"
 	"log"
 	"net"
-	"os"
 	"time"
 )
 
@@ -70,23 +69,13 @@ func (service *NodeService) Startup() error {
 		return err
 	}
 
-	name, err := os.Hostname()
-	if err != nil {
-		return err
-	}
-
-	regOpts := &cluster.RegistClusterOptions{
-		Name:    name,
-		Addr:    addr,
-		Labels:  []string{"node=wh7", "os=centos6.8"},
-		Version: "1.0.0",
-	}
+	regOpts := types.NewClusterRegistOptions("", "", addr, []string{"node=wh7", "os=centos6.8"}, "1.0.0")
 	buf, err := json.EnCodeObjectToBuffer(regOpts)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[#service#] regist key:%s, addr %s\n", service.Key, addr)
+	log.Printf("[#service#] regist to cluster id:%s, ip:%s, addr %s\n", service.Key, regOpts.IP, regOpts.Addr)
 	service.discovery.Register(service.Key, buf, service.stopCh, func(key string, err error) {
 		log.Printf("[#service#] discovery regist %s error:%s\n", key, err.Error())
 	})
