@@ -11,6 +11,7 @@ import (
 	"flag"
 	"log"
 	"net"
+	"os"
 	"time"
 )
 
@@ -69,7 +70,17 @@ func (service *NodeService) Startup() error {
 		return err
 	}
 
-	regOpts := &cluster.RegistClusterOptions{Addr: addr}
+	name, err := os.Hostname()
+	if err != nil {
+		return err
+	}
+
+	regOpts := &cluster.RegistClusterOptions{
+		Name:    name,
+		Addr:    addr,
+		Labels:  []string{"node=wh7", "os=centos6.8"},
+		Version: "1.0.0",
+	}
 	buf, err := json.EnCodeObjectToBuffer(regOpts)
 	if err != nil {
 		return err
@@ -100,7 +111,7 @@ func getServiceAddr(host string) (string, error) {
 		ip = network.GetDefaultIP()
 	}
 
-	if _, err := net.ResolveIPAddr("ip", ip); err != nil {
+	if _, err := net.ResolveIPAddr("ip4", ip); err != nil {
 		return "", err
 	}
 	return ip + ":" + port, nil
