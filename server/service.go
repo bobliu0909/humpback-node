@@ -69,7 +69,7 @@ func (service *NodeService) Startup() error {
 		return err
 	}
 
-	regOpts := types.NewClusterRegistOptions("", "", addr, []string{"node=wh7", "os=centos6.8"}, "1.0.0")
+	regOpts := types.NewClusterRegistOptions("", "", "", addr, []string{"node=wh7", "os=centos6.8"}, "1.0.0")
 	buf, err := json.EnCodeObjectToBuffer(regOpts)
 	if err != nil {
 		return err
