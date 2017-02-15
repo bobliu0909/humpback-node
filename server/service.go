@@ -1,16 +1,14 @@
 package server
 
-import "github.com/humpback/discovery"
-import "github.com/humpback/gounits/rand"
-import "github.com/humpback/gounits/network"
-import "github.com/humpback/gounits/json"
-import "github.com/humpback/humpback-center/cluster/types"
 import "github.com/bobliu0909/humpback-node/etc"
+import "github.com/humpback/discovery"
+import "github.com/humpback/gounits/json"
+import "github.com/humpback/gounits/rand"
+import "github.com/humpback/humpback-center/cluster/types"
 
 import (
 	"flag"
 	"log"
-	"net"
 	"time"
 )
 
@@ -64,18 +62,18 @@ func NewNodeService() (*NodeService, error) {
 func (service *NodeService) Startup() error {
 
 	log.Printf("[#service#] service start...\n")
-	addr, err := getServiceAddr(service.Configuration.API.Host)
+	labels := []string{"node=wh7", "os=centos6.8"}
+	registOpts, err := types.NewClusterRegistOptions(service.Configuration.API.Host, labels)
 	if err != nil {
 		return err
 	}
 
-	regOpts := types.NewClusterRegistOptions("", "", "", addr, []string{"node=wh7", "os=centos6.8"}, "1.0.0")
-	buf, err := json.EnCodeObjectToBuffer(regOpts)
+	buf, err := json.EnCodeObjectToBuffer(registOpts)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[#service#] regist to cluster id:%s, ip:%s, addr %s\n", service.Key, regOpts.IP, regOpts.Addr)
+	log.Printf("[#service#] regist to cluster id:%s, ip:%s, addr %s\n", service.Key, registOpts.IP, registOpts.APIAddr)
 	service.discovery.Register(service.Key, buf, service.stopCh, func(key string, err error) {
 		log.Printf("[#service#] discovery regist %s error:%s\n", key, err.Error())
 	})
@@ -87,21 +85,4 @@ func (service *NodeService) Stop() error {
 	log.Printf("[#service#] service closed.\n")
 	close(service.stopCh)
 	return nil
-}
-
-func getServiceAddr(host string) (string, error) {
-
-	ip, port, err := net.SplitHostPort(host)
-	if err != nil {
-		return "", err
-	}
-
-	if len(ip) == 0 {
-		ip = network.GetDefaultIP()
-	}
-
-	if _, err := net.ResolveIPAddr("ip4", ip); err != nil {
-		return "", err
-	}
-	return ip + ":" + port, nil
 }

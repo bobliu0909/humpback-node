@@ -3,7 +3,6 @@ package main
 import "github.com/gorilla/mux"
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 )
@@ -13,9 +12,9 @@ func startRouter(host string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/humpbacknode/v1/_ping", ping).Methods("GET")
 	http.Handle("/", r)
-	fmt.Println("humpback-node api starting...")
+	log.Printf("[#api#] API starting...\n")
 	if err := http.ListenAndServe(host, nil); err != nil {
-		log.Printf("humpback-node api error: %s\n", err.Error())
+		log.Printf("[#api#] API start error: %s\n", err.Error())
 	}
 }
 
