@@ -5,5 +5,5 @@ discovery:
     heartbeat: 5s
     ttl: 18s
 api:
-    host: ":8901"
+    host: :8901
 ...

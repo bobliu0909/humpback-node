@@ -62,8 +62,7 @@ func NewNodeService() (*NodeService, error) {
 func (service *NodeService) Startup() error {
 
 	log.Printf("[#service#] service start...\n")
-	labels := []string{"node=wh7", "os=centos6.8"}
-	registOpts, err := types.NewClusterRegistOptions(service.Configuration.API.Host, labels)
+	registOpts, err := types.NewClusterRegistOptions(service.Configuration.API.Host)
 	if err != nil {
 		return err
 	}
@@ -73,7 +72,7 @@ func (service *NodeService) Startup() error {
 		return err
 	}
 
-	log.Printf("[#service#] regist to cluster id:%s, ip:%s, addr %s\n", service.Key, registOpts.IP, registOpts.APIAddr)
+	log.Printf("[#service#] regist to cluster id:%s, addr %s\n", service.Key, registOpts.Addr)
 	service.discovery.Register(service.Key, buf, service.stopCh, func(key string, err error) {
 		log.Printf("[#service#] discovery regist %s error:%s\n", key, err.Error())
 	})
